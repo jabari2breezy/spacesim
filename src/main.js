@@ -1,4 +1,5 @@
 // Main entry point for AutoPilot SpaceFlight Simulator
+// Using scaled units (1 unit = 1000 km)
 class SpaceFlightSimulator {
     constructor() {
         this.scene = null;
@@ -19,11 +20,11 @@ class SpaceFlightSimulator {
         // Create scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x000010);
-        this.scene.fog = new THREE.Fog(0x000010, 1000, 500000);
+        this.scene.fog = new THREE.Fog(0x000010, 0.1, 500);
         
         // Create camera
-        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000000);
-        this.camera.position.set(0, 100, 200);
+        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.set(0, 0.2, 0.3);
         
         // Create renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -57,20 +58,20 @@ class SpaceFlightSimulator {
     
     createStarfield() {
         const starGeometry = new THREE.BufferGeometry();
-        const starCount = 5000;
+        const starCount = 2000;
         const positions = new Float32Array(starCount * 3);
         
         for (let i = 0; i < starCount * 3; i += 3) {
-            positions[i] = (Math.random() - 0.5) * 2000000;
-            positions[i + 1] = (Math.random() - 0.5) * 2000000;
-            positions[i + 2] = (Math.random() - 0.5) * 2000000;
+            positions[i] = (Math.random() - 0.5) * 1000;
+            positions[i + 1] = (Math.random() - 0.5) * 1000;
+            positions[i + 2] = (Math.random() - 0.5) * 1000;
         }
         
         starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         const starMaterial = new THREE.PointsMaterial({
             color: 0xffffff,
-            size: 1,
-            sizeAttenuation: false
+            size: 0.05,
+            sizeAttenuation: true
         });
         
         const stars = new THREE.Points(starGeometry, starMaterial);
@@ -79,15 +80,15 @@ class SpaceFlightSimulator {
     
     setupLighting() {
         // Ambient light
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
         this.scene.add(ambientLight);
         
         // Directional light (sun)
-        const sunLight = new THREE.DirectionalLight(0xffffff, 2);
-        sunLight.position.set(100000, 100000, 100000);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        sunLight.position.set(10, 10, 10);
         sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
         this.scene.add(sunLight);
     }
     
@@ -123,7 +124,7 @@ class SpaceFlightSimulator {
         // Update camera to follow rocket
         if (this.rocket.mesh) {
             const rocketPos = this.rocket.mesh.position;
-            const cameraOffset = new THREE.Vector3(0, 50, -100);
+            const cameraOffset = new THREE.Vector3(0, 0.02, -0.05);
             const cameraPos = rocketPos.clone().add(cameraOffset);
             this.camera.position.lerp(cameraPos, 0.05);
             this.camera.lookAt(rocketPos);
@@ -137,17 +138,17 @@ class SpaceFlightSimulator {
         const moonPos = this.celestial.moon.position;
         const distanceToMoon = rocketPos.distanceTo(moonPos);
         
-        // Update distance display
+        // Update distance display (scaled)
         document.getElementById('distance').textContent = 
-            distanceToMoon > 1000 ? 
-            `${(distanceToMoon / 1000).toFixed(0)} km` : 
-            `${distanceToMoon.toFixed(0)} m`;
+            distanceToMoon > 1 ? 
+            `${(distanceToMoon * 1000).toFixed(0)} km` : 
+            `${(distanceToMoon * 1000000).toFixed(0)} m`;
         
-        // Mission phase transitions
+        // Mission phase transitions (scaled)
         if (this.missionPhase === 'LAUNCH') {
             // Check if we've reached orbit
             const altitude = this.rocket.altitude;
-            if (altitude > 200000 && this.rocket.currentStage === 3) {
+            if (altitude > 200 && this.rocket.currentStage === 3) {
                 this.missionPhase = 'TRANS_LUNAR';
             }
         }
@@ -167,13 +168,13 @@ class SpaceFlightSimulator {
         }
         
         // Check for moon landing
-        if (this.missionPhase === 'LANDING' && distanceToMoon < 100) {
+        if (this.missionPhase === 'LANDING' && distanceToMoon < 0.01) {
             const verticalVelocity = Math.abs(this.rocket.velocity.y);
             const horizontalVelocity = Math.sqrt(
                 this.rocket.velocity.x ** 2 + this.rocket.velocity.z ** 2
             );
             
-            if (verticalVelocity < 10 && horizontalVelocity < 10) {
+            if (verticalVelocity < 0.01 && horizontalVelocity < 0.01) {
                 this.missionPhase = 'LANDED';
                 this.showLandingResult(true);
             } else {
@@ -195,7 +196,7 @@ class SpaceFlightSimulator {
         document.getElementById('altitude').textContent = 
             `${(this.rocket.altitude / 1000).toFixed(1)} km`;
         document.getElementById('velocity').textContent = 
-            `${this.rocket.speed.toFixed(1)} m/s`;
+            `${(this.rocket.speed * 1000).toFixed(1)} m/s`;
         document.getElementById('fuel').textContent = 
             `${(this.rocket.fuel * 100).toFixed(1)}%`;
         document.getElementById('stage').textContent = 

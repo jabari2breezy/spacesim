@@ -1,13 +1,18 @@
 // Realistic physics engine for orbital mechanics
+// Using scaled units (1 unit = 1000 km)
 class PhysicsEngine {
     constructor() {
-        // Gravitational constants (scaled for performance)
-        this.G = 6.67430e-11;
-        this.earthMass = 5.972e24;
-        this.moonMass = 7.342e22;
+        // Scaled gravitational constant for our units
+        // Using a simplified scale for gameplay
+        this.G = 1000; // Simplified for visible gameplay
+        this.earthMass = 100;
+        this.moonMass = 1;
         
         // Time scale (1 second = 10 seconds in game)
         this.timeScale = 10;
+        
+        // Scale factor for thrust
+        this.thrustScale = 1000000;
     }
     
     update(rocket, celestial, delta) {
@@ -26,7 +31,7 @@ class PhysicsEngine {
         if (rocket.engineOn) {
             const thrustVector = new THREE.Vector3(0, 1, 0)
                 .applyQuaternion(rocket.mesh.quaternion)
-                .multiplyScalar(rocket.thrust / rocket.stages[rocket.currentStage - 1].mass);
+                .multiplyScalar(rocket.thrust / this.thrustScale);
             totalAcceleration.add(thrustVector);
             
             // Consume fuel
@@ -55,7 +60,7 @@ class PhysicsEngine {
         // Don't apply gravity if inside body
         if (distance < bodyRadius) return new THREE.Vector3(0, 0, 0);
         
-        // Calculate gravitational force
+        // Calculate gravitational force (acceleration)
         const force = new THREE.Vector3()
             .subVectors(body.position, rocket.mesh.position)
             .normalize()
@@ -66,13 +71,7 @@ class PhysicsEngine {
     
     calculateOrbit(rocket, celestial) {
         // Simplified orbital calculation
-        // In a real implementation, this would use proper orbital mechanics
-        
         const distanceToEarth = rocket.mesh.position.distanceTo(celestial.earth.position);
-        const distanceToMoon = rocket.mesh.position.distanceTo(celestial.moon.position);
-        
-        // Calculate apoapsis and periapsis based on current trajectory
-        // This is a simplified approximation
         const speed = rocket.velocity.length();
         const earthRadius = celestial.earthRadius;
         
@@ -81,12 +80,12 @@ class PhysicsEngine {
             const orbitalEnergy = 0.5 * speed * speed - (this.G * this.earthMass) / distanceToEarth;
             if (orbitalEnergy < 0) {
                 const semiMajorAxis = -this.G * this.earthMass / (2 * orbitalEnergy);
-                rocket.apoapsis = semiMajorAxis;
-                rocket.periapsis = semiMajorAxis * 0.8; // Simplified
+                rocket.apoapsis = semiMajorAxis * 1000; // Convert to km
+                rocket.periapsis = semiMajorAxis * 0.8 * 1000;
             }
         } else {
-            rocket.apoapsis = distanceToEarth;
-            rocket.periapsis = distanceToEarth;
+            rocket.apoapsis = distanceToEarth * 1000;
+            rocket.periapsis = distanceToEarth * 1000;
         }
     }
     

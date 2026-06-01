@@ -1,4 +1,5 @@
 // Automatic flight control system
+// Using scaled units (1 unit = 1000 km)
 class Autopilot {
     constructor(rocket, celestial, physics) {
         this.rocket = rocket;
@@ -12,8 +13,8 @@ class Autopilot {
         
         // PID controllers for smooth control
         this.pidAltitude = { kp: 0.0001, ki: 0.000001, kd: 0.001, integral: 0, previous: 0 };
-        this.pidVelocity = { kp: 0.01, ki: 0.0001, kd: 0.05, integral: 0, previous: 0 };
-        this.pidPitch = { kp: 2, ki: 0.1, kd: 0.5, integral: 0, previous: 0 };
+        this.pidVelocity = { kp: 0.5, ki: 0.01, kd: 0.1, integral: 0, previous: 0 };
+        this.pidPitch = { kp: 0.1, ki: 0.001, kd: 0.01, integral: 0, previous: 0 };
     }
     
     update(delta, missionPhase) {
@@ -40,11 +41,8 @@ class Autopilot {
         if (this.rocket.currentStage === 1 && this.rocket.stages[0].fuel > 0) {
             this.rocket.activateEngine();
             
-            // Target: vertical ascent to 100km
-            this.targetAltitude = 100000;
-            
-            // Stage separation at specific altitudes
-            if (this.rocket.altitude > 50000 && this.rocket.stages[0].fuel < 0.1) {
+            // Stage separation at specific altitudes (scaled)
+            if (this.rocket.altitude > 50 && this.rocket.stages[0].fuel < 0.1) {
                 this.rocket.separateStage();
             }
         }
@@ -53,10 +51,7 @@ class Autopilot {
         if (this.rocket.currentStage === 2) {
             this.rocket.activateEngine();
             
-            // Target: orbit at 200km
-            this.targetAltitude = 200000;
-            
-            if (this.rocket.altitude > 150000 && this.rocket.stages[1].fuel < 0.1) {
+            if (this.rocket.altitude > 150 && this.rocket.stages[1].fuel < 0.1) {
                 this.rocket.separateStage();
             }
         }
@@ -65,9 +60,9 @@ class Autopilot {
         if (this.rocket.currentStage === 3) {
             this.rocket.activateEngine();
             
-            // Target: escape Earth's gravity
+            // Target: escape Earth's gravity (scaled)
             const distanceToEarth = this.rocket.mesh.position.length() - this.celestial.earthRadius;
-            if (distanceToEarth > 300000) {
+            if (distanceToEarth > 300) {
                 this.rocket.deactivateEngine();
             }
         }
@@ -78,16 +73,15 @@ class Autopilot {
     
     gravityTurn() {
         const altitude = this.rocket.altitude;
-        const maxAltitude = 100000;
         
-        // Gradually pitch over as we ascend
+        // Gradually pitch over as we ascend (scaled)
         let targetPitch = 0;
-        if (altitude < 1000) {
+        if (altitude < 1) {
             targetPitch = 0; // Vertical
-        } else if (altitude < 10000) {
-            targetPitch = (altitude - 1000) / (10000 - 1000) * 45; // 45 degrees
-        } else if (altitude < 50000) {
-            targetPitch = 45 + (altitude - 10000) / (50000 - 10000) * 45; // 90 degrees
+        } else if (altitude < 10) {
+            targetPitch = (altitude - 1) / (10 - 1) * 45; // 45 degrees
+        } else if (altitude < 50) {
+            targetPitch = 45 + (altitude - 10) / (50 - 10) * 45; // 90 degrees
         } else {
             targetPitch = 90; // Horizontal
         }
@@ -112,7 +106,7 @@ class Autopilot {
         this.pidPitch.previous = error;
         
         // Apply rotation
-        this.rocket.mesh.rotateX(THREE.MathUtils.degToRad(output * 0.01));
+        this.rocket.mesh.rotateX(THREE.MathUtils.degToRad(output * 0.1));
     }
     
     transLunarInjection() {
@@ -139,7 +133,7 @@ class Autopilot {
         if (rotationAxis.length() > 0.001) {
             const angle = currentDir.angleTo(targetDir);
             this.rocket.mesh.quaternion.premultiply(
-                new THREE.Quaternion().setFromAxisAngle(rotationAxis.normalize(), angle * 0.01)
+                new THREE.Quaternion().setFromAxisAngle(rotationAxis.normalize(), angle * 0.05)
             );
         }
     }
@@ -176,10 +170,9 @@ class Autopilot {
         
         // Control descent
         const distanceToMoon = this.rocket.mesh.position.distanceTo(this.celestial.moon.position);
-        const surfaceDistance = distanceToMoon - this.celestial.moonRadius;
         
-        // Target vertical velocity for landing
-        const targetVerticalVelocity = -10; // 10 m/s descent
+        // Target vertical velocity for landing (scaled)
+        const targetVerticalVelocity = -0.01; // 10 m/s descent
         
         // PID control for vertical speed
         const verticalVelocity = this.rocket.velocity.y;

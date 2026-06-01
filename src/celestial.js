@@ -1,17 +1,17 @@
 // Celestial bodies (Earth and Moon) with realistic textures
+// Using scaled units for visibility (1 unit = 1000 km)
 class CelestialBodies {
     constructor(scene) {
         this.scene = scene;
         this.earth = null;
         this.moon = null;
-        this.earthOrbit = null;
         
-        // Real-world scale (scaled down for performance)
-        this.earthRadius = 6371000;
-        this.moonRadius = 1737000;
-        this.earthMoonDistance = 384400000;
+        // Scaled for visibility (1 unit = 1000 km)
+        this.earthRadius = 6.371; // 6371 km
+        this.moonRadius = 1.737; // 1737 km
+        this.earthMoonDistance = 384.4; // 384,400 km
         
-        // Set masses for physics
+        // Set masses for physics (scaled accordingly)
         this.earthMass = 5.972e24;
         this.moonMass = 7.342e22;
         
@@ -21,12 +21,12 @@ class CelestialBodies {
     
     createEarth() {
         // Create Earth with realistic texture
-        const earthGeometry = new THREE.SphereGeometry(this.earthRadius, 128, 128);
+        const earthGeometry = new THREE.SphereGeometry(this.earthRadius, 64, 64);
         
         // Create canvas for procedural Earth texture
         const canvas = document.createElement('canvas');
-        canvas.width = 2048;
-        canvas.height = 1024;
+        canvas.width = 512;
+        canvas.height = 256;
         const ctx = canvas.getContext('2d');
         
         // Draw Earth texture
@@ -59,52 +59,52 @@ class CelestialBodies {
         
         // North America
         ctx.beginPath();
-        ctx.moveTo(200, 200);
-        ctx.bezierCurveTo(300, 150, 400, 200, 500, 250);
-        ctx.bezierCurveTo(450, 300, 350, 350, 250, 300);
+        ctx.moveTo(50, 50);
+        ctx.bezierCurveTo(75, 38, 100, 50, 125, 62);
+        ctx.bezierCurveTo(112, 75, 87, 87, 62, 75);
         ctx.closePath();
         ctx.fill();
         
         // South America
         ctx.beginPath();
-        ctx.moveTo(300, 400);
-        ctx.bezierCurveTo(350, 450, 400, 550, 350, 650);
-        ctx.bezierCurveTo(250, 600, 200, 500, 250, 450);
+        ctx.moveTo(75, 100);
+        ctx.bezierCurveTo(87, 112, 100, 137, 87, 162);
+        ctx.bezierCurveTo(62, 150, 50, 125, 62, 112);
         ctx.closePath();
         ctx.fill();
         
         // Europe/Africa
         ctx.beginPath();
-        ctx.moveTo(550, 250);
-        ctx.bezierCurveTo(650, 200, 750, 250, 850, 300);
-        ctx.bezierCurveTo(800, 400, 700, 500, 600, 450);
-        ctx.bezierCurveTo(500, 400, 500, 300, 550, 250);
+        ctx.moveTo(137, 62);
+        ctx.bezierCurveTo(162, 50, 187, 62, 212, 75);
+        ctx.bezierCurveTo(200, 100, 175, 125, 150, 112);
+        ctx.bezierCurveTo(125, 100, 125, 75, 137, 62);
         ctx.closePath();
         ctx.fill();
         
         // Asia
         ctx.beginPath();
-        ctx.moveTo(700, 150);
-        ctx.bezierCurveTo(800, 100, 950, 150, 1050, 200);
-        ctx.bezierCurveTo(1100, 300, 1000, 400, 900, 350);
-        ctx.bezierCurveTo(800, 300, 750, 200, 700, 150);
+        ctx.moveTo(175, 38);
+        ctx.bezierCurveTo(200, 25, 237, 38, 262, 50);
+        ctx.bezierCurveTo(275, 75, 250, 100, 225, 87);
+        ctx.bezierCurveTo(200, 75, 187, 50, 175, 38);
         ctx.closePath();
         ctx.fill();
         
         // Australia
         ctx.beginPath();
-        ctx.moveTo(900, 550);
-        ctx.bezierCurveTo(950, 600, 1000, 650, 950, 700);
-        ctx.bezierCurveTo(900, 680, 850, 600, 900, 550);
+        ctx.moveTo(225, 137);
+        ctx.bezierCurveTo(237, 150, 250, 162, 237, 175);
+        ctx.bezierCurveTo(225, 170, 212, 150, 225, 137);
         ctx.closePath();
         ctx.fill();
         
         // Add cloud patterns
         ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 50; i++) {
             const x = Math.random() * width;
             const y = Math.random() * height;
-            const size = Math.random() * 50 + 20;
+            const size = Math.random() * 12 + 5;
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fill();
@@ -113,42 +113,21 @@ class CelestialBodies {
         // Add ice caps
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(1024, 100, 150, 0, Math.PI * 2);
+        ctx.arc(256, 25, 15, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.arc(1024, 900, 100, 0, Math.PI * 2);
+        ctx.arc(256, 230, 10, 0, Math.PI * 2);
         ctx.fill();
     }
     
     createAtmosphere() {
-        const atmosphereGeometry = new THREE.SphereGeometry(this.earthRadius * 1.02, 64, 64);
-        const atmosphereMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                color: { value: new THREE.Color(0x87ceeb) },
-                density: { value: 0.5 },
-                atmosphereRadius: { value: this.earthRadius * 1.02 }
-            },
-            vertexShader: `
-                varying vec3 vWorldPosition;
-                void main() {
-                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-                    vWorldPosition = worldPosition.xyz;
-                    gl_Position = projectionMatrix * viewMatrix * worldPosition;
-                }
-            `,
-            fragmentShader: `
-                uniform vec3 color;
-                uniform float density;
-                uniform float atmosphereRadius;
-                varying vec3 vWorldPosition;
-                void main() {
-                    float dist = length(vWorldPosition);
-                    float alpha = density * (1.0 - dist / atmosphereRadius);
-                    gl_FragColor = vec4(color, alpha);
-                }
-            `,
+        const atmosphereGeometry = new THREE.SphereGeometry(this.earthRadius * 1.05, 32, 32);
+        const atmosphereMaterial = new THREE.MeshBasicMaterial({
+            color: 0x87ceeb,
             transparent: true,
-            side: THREE.BackSide
+            opacity: 0.15,
+            side: THREE.BackSide,
+            depthWrite: false
         });
         
         const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
@@ -157,12 +136,12 @@ class CelestialBodies {
     
     createMoon() {
         // Create Moon with craters
-        const moonGeometry = new THREE.SphereGeometry(this.moonRadius, 64, 64);
+        const moonGeometry = new THREE.SphereGeometry(this.moonRadius, 32, 32);
         
         // Create canvas for procedural Moon texture
         const canvas = document.createElement('canvas');
-        canvas.width = 1024;
-        canvas.height = 512;
+        canvas.width = 256;
+        canvas.height = 128;
         const ctx = canvas.getContext('2d');
         
         this.drawMoonTexture(ctx, canvas.width, canvas.height);
@@ -180,9 +159,6 @@ class CelestialBodies {
         this.moon.receiveShadow = true;
         this.moon.castShadow = true;
         this.scene.add(this.moon);
-        
-        // Moon glow effect
-        this.createMoonGlow();
     }
     
     drawMoonTexture(ctx, width, height) {
@@ -191,10 +167,10 @@ class CelestialBodies {
         ctx.fillRect(0, 0, width, height);
         
         // Add craters
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 100; i++) {
             const x = Math.random() * width;
             const y = Math.random() * height;
-            const radius = Math.random() * 20 + 5;
+            const radius = Math.random() * 5 + 2;
             
             const gray = Math.floor(Math.random() * 40 + 100);
             ctx.fillStyle = 'rgb(' + gray + ', ' + gray + ', ' + gray + ')';
@@ -213,45 +189,11 @@ class CelestialBodies {
         // Add larger features (mare)
         ctx.fillStyle = '#555555';
         ctx.beginPath();
-        ctx.ellipse(300, 250, 150, 100, Math.PI / 4, 0, Math.PI * 2);
+        ctx.ellipse(75, 62, 37, 25, Math.PI / 4, 0, Math.PI * 2);
         ctx.fill();
         
         ctx.beginPath();
-        ctx.ellipse(700, 350, 120, 80, -Math.PI / 6, 0, Math.PI * 2);
+        ctx.ellipse(175, 87, 30, 20, -Math.PI / 6, 0, Math.PI * 2);
         ctx.fill();
-    }
-    
-    createMoonGlow() {
-        const glowGeometry = new THREE.SphereGeometry(this.moonRadius * 1.05, 32, 32);
-        const glowMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                color: { value: new THREE.Color(0xaaaaaa) },
-                moonGlowRadius: { value: this.moonRadius * 1.05 }
-            },
-            vertexShader: `
-                varying vec3 vWorldPosition;
-                void main() {
-                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-                    vWorldPosition = worldPosition.xyz;
-                    gl_Position = projectionMatrix * viewMatrix * worldPosition;
-                }
-            `,
-            fragmentShader: `
-                uniform vec3 color;
-                uniform float moonGlowRadius;
-                varying vec3 vWorldPosition;
-                void main() {
-                    float dist = length(vWorldPosition);
-                    float alpha = 0.1 * (1.0 - dist / moonGlowRadius);
-                    gl_FragColor = vec4(color, alpha);
-                }
-            `,
-            transparent: true,
-            side: THREE.BackSide,
-            depthWrite: false
-        });
-        
-        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-        this.moon.add(glow);
     }
 }
