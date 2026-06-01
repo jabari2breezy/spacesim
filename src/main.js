@@ -22,9 +22,9 @@ class SpaceFlightSimulator {
         this.scene.background = new THREE.Color(0x000010);
         this.scene.fog = new THREE.Fog(0x000010, 0.1, 500);
         
-        // Create camera
+        // Create camera - positioned to see the rocket on Earth
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.set(0, 0.2, 0.3);
+        this.camera.position.set(0, 0.02, 0.05);
         
         // Create renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -124,7 +124,7 @@ class SpaceFlightSimulator {
         // Update camera to follow rocket
         if (this.rocket.mesh) {
             const rocketPos = this.rocket.mesh.position;
-            const cameraOffset = new THREE.Vector3(0, 0.02, -0.05);
+            const cameraOffset = new THREE.Vector3(0, 0.005, -0.01);
             const cameraPos = rocketPos.clone().add(cameraOffset);
             this.camera.position.lerp(cameraPos, 0.05);
             this.camera.lookAt(rocketPos);
