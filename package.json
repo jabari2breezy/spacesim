@@ -1,0 +1,13 @@
+{
+  "name": "autopilot-spaceflight",
+  "version": "1.0.0",
+  "description": "Hyperrealistic automatic rocket flight simulator",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx vite"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoPilot SpaceFlight Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; font-family: 'Courier New', monospace; background: #000; }
+        #game-container { width: 100vw; height: 100vh; }
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+        }
+        .panel {
+            position: absolute;
+            background: rgba(0, 20, 0, 0.7);
+            border: 1px solid #0f0;
+            padding: 15px;
+            pointer-events: auto;
+        }
+        #telemetry { top: 20px; left: 20px; }
+        #mission { top: 20px; right: 20px; }
+        #controls { bottom: 20px; left: 20px; }
+        h3 { margin-bottom: 10px; border-bottom: 1px solid #0f0; padding-bottom: 5px; }
+        .stat { margin: 5px 0; }
+        .stat-label { display: inline-block; width: 120px; }
+        .stat-value { font-weight: bold; }
+        #start-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        #start-btn:hover { background: #0ff; }
+        #landing-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            text-align: center;
+            display: none;
+        }
+        .success { color: #0f0; }
+        .failure { color: #f00; }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <div id="ui-overlay">
+        <div class="panel" id="telemetry">
+            <h3>TELEMETRY</h3>
+            <div class="stat"><span class="stat-label">ALTITUDE:</span> <span class="stat-value" id="altitude">0 km</span></div>
+            <div class="stat"><span class="stat-label">VELOCITY:</span> <span class="stat-value" id="velocity">0 m/s</span></div>
+            <div class="stat"><span class="stat-label">FUEL:</span> <span class="stat-value" id="fuel">100%</span></div>
+            <div class="stat"><span class="stat-label">STAGE:</span> <span class="stat-value" id="stage">1/3</span></div>
+            <div class="stat"><span class="stat-label">APOAPSIS:</span> <span class="stat-value" id="apoapsis">0 km</span></div>
+            <div class="stat"><span class="stat-label">PERIAPSIS:</span> <span class="stat-value" id="periapsis">0 km</span></div>
+        </div>
+        <div class="panel" id="mission">
+            <h3>MISSION STATUS</h3>
+            <div class="stat"><span class="stat-label">TARGET:</span> <span class="stat-value">MOON</span></div>
+            <div class="stat"><span class="stat-label">DISTANCE:</span> <span class="stat-value" id="distance">384400 km</span></div>
+            <div class="stat"><span class="stat-label">STATUS:</span> <span class="stat-value" id="status">READY</span></div>
+            <div class="stat"><span class="stat-label">AUTOPILOT:</span> <span class="stat-value" id="autopilot">STANDBY</span></div>
+        </div>
+        <div class="panel" id="controls">
+            <button id="start-btn">START MISSION</button>
+        </div>
+        <div id="landing-status"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="src/rocket.js"></script>
+    <script src="src/celestial.js"></script>
+    <script src="src/physics.js"></script>
+    <script src="src/autopilot.js"></script>
+    <script src="src/main.js"></script>
+</body>
+</html>
